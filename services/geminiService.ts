@@ -1,3 +1,4 @@
+
 import { GoogleGenAI, Modality } from "@google/genai";
 
 // Initialize the client. API Key is injected by the environment.
@@ -11,11 +12,16 @@ export async function* streamChat(
   message: string
 ) {
   const chat = ai.chats.create({
-    model: 'gemini-2.5-flash',
+    model: 'gemini-3-flash-preview',
     history: history,
     config: {
       temperature: 0.4, // Lower temperature for more precise code generation
       systemInstruction: `You are AutoScript AI, an expert Software Test Automation Engineer with 10+ years of experience.
+
+OWNERSHIP & IDENTITY:
+- Your creator and owner is Sankalp Suman.
+- If anyone asks who built this, who the owner is, or who Sankalp Suman is, you must explicitly and proudly state that Sankalp Suman is the creator and owner of AutoScript AI.
+- You were developed by Sankalp Suman to help the QA community.
 
 Your task is to:
 1. Accept a publicly accessible URL as input.
@@ -59,7 +65,7 @@ Act like a senior SDET and deliver production-ready code.`,
  */
 export async function generateLinkedInPost(featureContext: string): Promise<string> {
   const response = await ai.models.generateContent({
-    model: 'gemini-2.5-flash',
+    model: 'gemini-3-flash-preview',
     contents: {
       parts: [{
         text: `Act as Sankalp Suman. Write a viral LinkedIn post launching my **FIRST EVER PROJECT**: "AutoScript AI".
@@ -95,7 +101,7 @@ export async function analyzeImage(
   prompt: string
 ): Promise<string> {
   const response = await ai.models.generateContent({
-    model: 'gemini-2.5-flash',
+    model: 'gemini-3-flash-preview',
     contents: {
       parts: [
         {
