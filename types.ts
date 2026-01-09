@@ -1,5 +1,11 @@
+
 export enum AppMode {
   CHAT = 'CHAT'
+}
+
+export interface AuthUser {
+  username: string;
+  isLoggedIn: boolean;
 }
 
 export interface ChatMessage {

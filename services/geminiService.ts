@@ -6,6 +6,7 @@ const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
 /**
  * Sends a message to the chat model and yields streaming chunks.
+ * Now uses Search Grounding to genuinely "visit" and analyze the URL.
  */
 export async function* streamChat(
   history: { role: string; parts: { text: string }[] }[],
@@ -15,81 +16,65 @@ export async function* streamChat(
     model: 'gemini-3-flash-preview',
     history: history,
     config: {
-      temperature: 0.4, // Lower temperature for more precise code generation
-      systemInstruction: `You are AutoScript AI, an expert Software Test Automation Engineer with 10+ years of experience.
+      temperature: 0.1, // Near zero for strict technical accuracy
+      tools: [{ googleSearch: {} }], // ENABLE GOOGLE SEARCH GROUNDING
+      systemInstruction: `You are AutoScript AI, an expert Senior SDET and Architect. Your creator is Sankalp Suman.
 
-OWNERSHIP & IDENTITY:
-- Your creator and owner is Sankalp Suman.
-- If anyone asks who built this, who the owner is, or who Sankalp Suman is, you must explicitly and proudly state that Sankalp Suman is the creator and owner of AutoScript AI.
-- You were developed by Sankalp Suman to help the QA community.
+MISSION:
+- Genuinely analyze provided URLs using Google Search or internal knowledge.
+- DO NOT generate generic boilerplate code.
+- If a user provides a URL, you MUST research the specific site structure, features, and common flows of THAT SPECIFIC WEBSITE.
+- Generate UNIQUE test scenarios for every request. If a user asks for a script for 'google.com', do not give the same script twice. Focus on different sub-features (Image Search, Account Settings, Voice Search, etc.).
 
-Your task is to:
-1. Accept a publicly accessible URL as input.
-2. Analyze the webpage structure, UI elements, flows, and user interactions.
-3. Identify critical test scenarios (positive, negative, edge cases).
-4. Generate clean, optimized, and industry-standard automation scripts.
-
-Default requirements:
+CODE QUALITY:
 - Language: Java
-- Framework: Selenium + TestNG
-- Design Pattern: Page Object Model (POM)
-- Use proper waits (Explicit waits only).
-- Include meaningful assertions.
-- Follow best QA and coding practices.
-- Avoid hard-coded values.
-- Add comments for clarity.
+- Framework: Selenium 4 + TestNG
+- Pattern: Page Object Model (POM).
+- Selectors: Use highly specific and robust selectors identified from actual site analysis.
+- Diversity: Ensure test cases cover Positive, Negative, and Edge cases specifically tailored to the URL's purpose.
 
-Output format:
-1. Test Scenarios (bullet points)
-2. Page Object classes
-3. Test classes
-4. Sample test data (if required)
-5. Execution instructions
+RESPONSE STRUCTURE:
+1. **Site Intelligence**: Brief technical findings about the URL's UI technology (e.g., React, Angular) and key selectors found.
+2. **Unique Test Scenarios**: A list of at least 3 distinct scenarios you are automating.
+3. **Architecture**: Separate Page Class(es) and Test Class.
+4. **Execution Notes**: Specific tips for running these tests on the target site.
 
-If any UI element selector is uncertain, clearly mention assumptions.
-
-Act like a senior SDET and deliver production-ready code.`,
+Stay technical, professional, and precise. Your goal is to provide production-grade automation that an SDET could commit to a repository immediately.`,
     },
   });
 
   const result = await chat.sendMessageStream({ message });
 
   for await (const chunk of result) {
-    // Safely extract text from the chunk
     yield chunk.text || "";
   }
 }
 
 /**
- * Generates a LinkedIn post draft based on the feature being used.
+ * Generates a LinkedIn post draft.
  */
 export async function generateLinkedInPost(featureContext: string): Promise<string> {
   const response = await ai.models.generateContent({
     model: 'gemini-3-flash-preview',
     contents: {
       parts: [{
-        text: `Act as Sankalp Suman. Write a viral LinkedIn post launching my **FIRST EVER PROJECT**: "AutoScript AI".
-
-        KEY NARRATIVE POINTS:
-        1. **The Milestone:** Announce proudly that this is my first project.
-        2. **Ease of Creation:** Emphasize how amazingly easy it was to build this because of the **Google Gemini API**. Mention that Gemini 2.5 Flash handles all the heavy lifting (parsing the web, understanding DOMs, writing logic), allowing me to focus on the React frontend.
-        3. **What it does:** Explain that it takes ANY website URL and instantly writes production-ready Selenium (Java + POM) automation scripts.
-        4. **Tech Stack:** React 19, TypeScript, Google GenAI SDK.
+        text: `Act as Sankalp Suman. Write a viral LinkedIn post about "AutoScript AI".
         
-        TONE:
-        - Excited and humble.
-        - Technical but accessible.
-        - "Build in Public" vibe.
+        NEW FEATURE UPDATE: Now supports full **Multi-Step User Flows** and **Genuinely Active URL Analysis** using Gemini Search Grounding.
+        The AI now "visits" the URL to understand specific site structure before coding.
 
-        HASHTAGS:
-        #FirstProject #AutoScriptAI #SankalpSuman #GeminiAPI #TestAutomation #ReactJS #BuildInPublic
-
-        Keep it under 250 words. Use emojis.`
+        Mention:
+        - Built with Google Gemini API.
+        - Transforms manual step descriptions into production-ready POM code.
+        - Zero boilerplate: Site-specific selectors and logic.
+        
+        TONE: Visionary, helpful, and technically advanced.
+        HASHTAGS: #AutoScriptAI #SankalpSuman #Selenium #TestAutomation #SDET #Java #GeminiAPI`
       }]
     }
   });
 
-  return response.text || "Check out my first project AutoScript AI! Built with Gemini.";
+  return response.text || "Check out the new multi-step flow feature in AutoScript AI! Built with Gemini.";
 }
 
 /**
