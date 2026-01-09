@@ -1,9 +1,13 @@
+
 <!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="https://upload.wikimedia.org/wikipedia/commons/8/8a/Google_Gemini_logo.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="theme-color" content="#0d1117" />
     <title>AutoScript AI - by Sankalp Suman</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -29,24 +33,42 @@
       }
     </script>
     <style>
+      :root {
+        --safe-area-inset-bottom: env(safe-area-inset-bottom, 0px);
+      }
       body {
         background-color: #0d1117;
         color: #e5e7eb;
+        -webkit-tap-highlight-color: transparent;
+        overscroll-behavior-y: none;
       }
       /* Custom scrollbar for webkit */
       ::-webkit-scrollbar {
-        width: 8px;
-        height: 8px;
+        width: 6px;
+        height: 6px;
       }
       ::-webkit-scrollbar-track {
-        background: #1f2937; 
+        background: transparent; 
       }
       ::-webkit-scrollbar-thumb {
-        background: #4b5563; 
-        border-radius: 4px;
+        background: #374151; 
+        border-radius: 10px;
       }
       ::-webkit-scrollbar-thumb:hover {
-        background: #6b7280; 
+        background: #4b5563; 
+      }
+      /* Fix for mobile text size adjustment */
+      html {
+        -webkit-text-size-adjust: 100%;
+      }
+      /* Safe area padding for mobile bottom nav */
+      .pb-safe {
+        padding-bottom: calc(4rem + var(--safe-area-inset-bottom));
+      }
+      @media (min-width: 768px) {
+        .pb-safe {
+          padding-bottom: 0;
+        }
       }
     </style>
   <script type="importmap">

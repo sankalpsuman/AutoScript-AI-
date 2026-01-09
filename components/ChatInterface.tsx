@@ -1,11 +1,10 @@
 
 import React, { useState, useRef, useEffect } from 'react';
-import { Send, User, Bot, Loader2, Sparkles, Globe, Lock, Layout, Code2, Terminal, ListOrdered, CheckCircle2, ChevronRight, Activity, Search } from 'lucide-react';
+import { Send, User, Bot, Loader2, Sparkles, Globe, Lock, Layout, Code2, Terminal, ListOrdered, CheckCircle2, ChevronRight, Activity, Search, RefreshCw } from 'lucide-react';
 import { ChatMessage } from '../types';
 import { streamChat } from '../services/geminiService';
 import LinkedInShare from './LinkedInShare';
 
-// Helper to extract URL and steps
 const extractUrl = (text: string) => {
   const urlRegex = /(https?:\/\/[^\s]+)/g;
   const match = text.match(urlRegex);
@@ -13,7 +12,6 @@ const extractUrl = (text: string) => {
 };
 
 const extractSteps = (text: string): string[] => {
-  // Try to find numbered lists or bullet points
   const stepLines = text.split('\n').filter(line => 
     /^\d+[\.\)]/.test(line.trim()) || 
     /^[-*•]/.test(line.trim()) ||
@@ -22,82 +20,74 @@ const extractSteps = (text: string): string[] => {
   return stepLines.length > 0 ? stepLines : [];
 };
 
-// Component to simulate a browser window with flow steps
 const FlowBrowserCard: React.FC<{ url: string; steps: string[] }> = ({ url, steps }) => (
-  <div className="mt-4 mb-4 w-full max-w-3xl bg-gray-900 border border-indigo-500/30 rounded-xl overflow-hidden shadow-2xl transition-all duration-500 animate-in fade-in slide-in-from-bottom-4">
-    {/* Browser Toolbar */}
-    <div className="bg-gray-800 px-4 py-2 flex items-center gap-3 border-b border-gray-700">
-      <div className="flex gap-1.5">
-        <div className="w-3 h-3 rounded-full bg-red-500/80"></div>
-        <div className="w-3 h-3 rounded-full bg-yellow-500/80"></div>
-        <div className="w-3 h-3 rounded-full bg-green-500/80"></div>
+  <div className="mt-4 mb-4 w-full bg-gray-900 border border-indigo-500/30 rounded-xl overflow-hidden shadow-2xl transition-all duration-500 animate-in fade-in slide-in-from-bottom-4">
+    <div className="bg-gray-800 px-3 py-2 flex items-center gap-2 md:gap-3 border-b border-gray-700">
+      <div className="flex gap-1">
+        <div className="w-2.5 h-2.5 rounded-full bg-red-500/80"></div>
+        <div className="w-2.5 h-2.5 rounded-full bg-yellow-500/80"></div>
+        <div className="w-2.5 h-2.5 rounded-full bg-green-500/80"></div>
       </div>
-      <div className="flex-1 bg-gray-950 rounded-md px-3 py-1 text-xs text-gray-400 flex items-center gap-2 font-mono">
-        <Lock className="w-3 h-3 text-green-500" />
-        <span className="truncate max-w-[300px]">{url}</span>
+      <div className="flex-1 bg-gray-950 rounded px-2 py-1 text-[10px] md:text-xs text-gray-400 flex items-center gap-2 font-mono overflow-hidden">
+        <Lock className="w-3 h-3 text-green-500 shrink-0" />
+        <span className="truncate">{url}</span>
       </div>
-      <div className="flex items-center gap-1.5 px-2 py-0.5 rounded bg-indigo-500/20 text-indigo-400 text-[10px] font-bold uppercase tracking-wider">
+      <div className="flex items-center gap-1.5 px-1.5 py-0.5 rounded bg-indigo-500/20 text-indigo-400 text-[9px] md:text-[10px] font-bold uppercase tracking-wider shrink-0">
         <Activity className="w-3 h-3 animate-pulse" />
-        Live Retrieval
+        <span className="hidden xs:inline">Retrieval</span>
       </div>
     </div>
     
-    {/* Flow Visualizer */}
-    <div className="p-0 bg-gray-950/30 relative flex flex-col md:flex-row min-h-[200px]">
-      {/* Left: Interactive Preview */}
-      <div className="flex-1 p-6 flex flex-col items-center justify-center border-b md:border-b-0 md:border-r border-gray-800">
+    <div className="p-0 bg-gray-950/30 flex flex-col sm:flex-row min-h-[160px]">
+      <div className="flex-1 p-4 md:p-6 flex flex-col items-center justify-center border-b sm:border-b-0 sm:border-r border-gray-800 relative overflow-hidden">
         <div className="absolute inset-0 bg-grid-white/[0.02] bg-[length:16px_16px]" />
-        <div className="z-10 flex flex-col items-center gap-4">
+        <div className="z-10 flex flex-col items-center gap-3">
           <div className="relative">
-            <Search className="w-12 h-12 text-indigo-400 animate-bounce duration-1000" />
-            <div className="absolute -top-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-gray-950 animate-ping"></div>
+            <Search className="w-8 h-8 md:w-12 md:h-12 text-indigo-400 animate-bounce" />
+            <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-gray-950"></div>
           </div>
           <div className="text-center">
-            <h3 className="text-sm font-bold text-white uppercase tracking-tight">Search Grounding Active</h3>
-            <p className="text-[11px] text-gray-500 mt-1">Visiting URL for element discovery</p>
+            <h3 className="text-xs font-bold text-white uppercase tracking-tight">Search Active</h3>
+            <p className="text-[9px] md:text-[11px] text-gray-500 mt-0.5">Visiting Target URL</p>
           </div>
         </div>
       </div>
 
-      {/* Right: Step List */}
-      <div className="w-full md:w-64 bg-gray-900/50 p-4 space-y-3">
-        <div className="flex items-center gap-2 mb-2 text-xs font-semibold text-gray-400 uppercase">
-          <ListOrdered className="w-3.5 h-3.5" />
-          Detected Actions
+      <div className="w-full sm:w-56 md:w-64 bg-gray-900/50 p-3 md:p-4 space-y-2 md:space-y-3">
+        <div className="flex items-center gap-2 mb-1 text-[10px] font-semibold text-gray-400 uppercase">
+          <ListOrdered className="w-3 h-3" />
+          Flow Logic
         </div>
-        <div className="space-y-2 max-h-[160px] overflow-y-auto pr-2 custom-scrollbar">
+        <div className="space-y-2 max-h-[140px] overflow-y-auto pr-1 custom-scrollbar">
           {steps.length > 0 ? steps.map((step, idx) => (
-            <div key={idx} className="flex items-start gap-2.5 group">
-              <div className="mt-0.5 flex-shrink-0 w-4 h-4 rounded-full border border-indigo-500/50 flex items-center justify-center text-[10px] text-indigo-400 font-mono">
+            <div key={idx} className="flex items-start gap-2 group">
+              <div className="mt-0.5 flex-shrink-0 w-3.5 h-3.5 rounded-full border border-indigo-500/50 flex items-center justify-center text-[9px] text-indigo-400 font-mono">
                 {idx + 1}
               </div>
-              <div className="flex-1 py-1 px-2 rounded-md bg-gray-800/40 border border-transparent group-hover:border-indigo-500/20 transition-all">
-                <p className="text-[11px] text-gray-300 line-clamp-2 leading-tight italic">
-                  {step.replace(/^\d+[\.\)]\s*/, '').replace(/^[-*•]\s*/, '')}
-                </p>
-              </div>
+              <p className="text-[10px] md:text-[11px] text-gray-300 line-clamp-2 leading-tight italic bg-gray-800/40 p-1 px-2 rounded-md border border-transparent group-hover:border-indigo-500/10 transition-colors">
+                {step.replace(/^\d+[\.\)]\s*/, '').replace(/^[-*•]\s*/, '')}
+              </p>
             </div>
           )) : (
             <div className="py-4 text-center">
-              <p className="text-[10px] text-gray-600">Deep crawling URL...<br/>Extracting DOM tree.</p>
+              <p className="text-[10px] text-gray-600 animate-pulse">Scanning DOM...</p>
             </div>
           )}
         </div>
       </div>
     </div>
     
-    {/* Progress Bar / Status */}
-    <div className="bg-gray-900 px-4 py-2 border-t border-gray-800 flex justify-between items-center text-[10px]">
-      <div className="flex gap-4 text-gray-500">
-        <span className="flex items-center gap-1"><Layout className="w-3 h-3" /> Live Context Loaded</span>
-        <span className="flex items-center gap-1 font-medium text-indigo-400">
-          <ChevronRight className="w-3 h-3" /> 
-          Architecting Script...
+    <div className="bg-gray-900 px-3 py-1.5 border-t border-gray-800 flex justify-between items-center text-[9px] md:text-[10px]">
+      <div className="flex gap-3 text-gray-500">
+        <span className="flex items-center gap-1 truncate max-w-[120px] sm:max-w-none"><Layout className="w-3 h-3" /> Live Context</span>
+        <span className="flex items-center gap-1 font-medium text-indigo-400 animate-pulse">
+          <RefreshCw className="w-2.5 h-2.5" /> 
+          Unique Test Design
         </span>
       </div>
-      <div className="flex items-center gap-1 text-emerald-500">
+      <div className="flex items-center gap-1 text-emerald-500 shrink-0 ml-2">
         <CheckCircle2 className="w-3 h-3" />
-        <span className="font-semibold uppercase tracking-widest">Connected</span>
+        <span className="font-semibold uppercase tracking-widest hidden xs:inline">Active</span>
       </div>
     </div>
   </div>
@@ -108,7 +98,7 @@ const ChatInterface: React.FC = () => {
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -117,12 +107,6 @@ const ChatInterface: React.FC = () => {
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
-
-  useEffect(() => {
-    if (!isLoading) {
-      inputRef.current?.focus();
-    }
-  }, [isLoading]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -157,26 +141,18 @@ const ChatInterface: React.FC = () => {
       for await (const chunk of stream) {
         fullText += chunk;
         setMessages(prev => 
-          prev.map(msg => 
-            msg.id === botMsgId 
-              ? { ...msg, text: fullText } 
-              : msg
-          )
+          prev.map(msg => msg.id === botMsgId ? { ...msg, text: fullText } : msg)
         );
       }
 
       setMessages(prev => 
-        prev.map(msg => 
-          msg.id === botMsgId 
-            ? { ...msg, isStreaming: false } 
-            : msg
-        )
+        prev.map(msg => msg.id === botMsgId ? { ...msg, isStreaming: false } : msg)
       );
     } catch (err) {
       console.error(err);
       setMessages(prev => [
         ...prev,
-        { id: Date.now().toString(), role: 'model', text: "Sorry, I encountered an error connecting to the AI core.", timestamp: Date.now() }
+        { id: Date.now().toString(), role: 'model', text: "Error: Retrieval failed. Please check the URL and try again.", timestamp: Date.now() }
       ]);
     } finally {
       setIsLoading(false);
@@ -185,68 +161,68 @@ const ChatInterface: React.FC = () => {
 
   const renderMessageText = (text: string) => {
     const parts = text.split(/(```[\s\S]*?```)/g);
-    
     return parts.map((part, index) => {
       if (part.startsWith('```')) {
         const lines = part.slice(3, -3).split('\n');
-        const language = lines[0].trim() || 'Java';
+        const language = lines[0].trim() || 'Code';
         const content = lines.slice(1).join('\n');
-        
         return (
-          <div key={index} className="my-4 rounded-xl overflow-hidden border border-gray-700 bg-[#0d1117] shadow-xl">
+          <div key={index} className="my-4 rounded-xl overflow-hidden border border-gray-700 bg-gray-950 shadow-2xl">
             <div className="bg-gray-800/80 px-4 py-2 border-b border-gray-700 flex items-center justify-between">
-              <div className="flex items-center gap-2 text-xs text-gray-400 font-medium">
+              <div className="flex items-center gap-2 text-[10px] md:text-xs text-gray-400 font-medium">
                 <Terminal className="w-3.5 h-3.5 text-indigo-400" />
-                <span>{language.toUpperCase()} / {language.toLowerCase() === 'java' ? 'Selenium (POM)' : 'Configuration'}</span>
+                <span>{language.toUpperCase()} Output</span>
               </div>
               <button 
                 onClick={() => navigator.clipboard.writeText(content)}
-                className="text-[10px] text-gray-500 hover:text-white transition-colors uppercase font-bold tracking-tighter bg-gray-950 px-2 py-0.5 rounded"
+                className="text-[9px] md:text-[10px] text-gray-500 hover:text-white transition-colors uppercase font-bold tracking-widest bg-gray-900 px-2 py-0.5 rounded"
               >
-                Copy Code
+                Copy
               </button>
             </div>
-            <pre className="p-5 overflow-x-auto text-xs md:text-sm font-mono text-emerald-400/90 leading-relaxed custom-scrollbar">
-              <code>{content.trim()}</code>
-            </pre>
+            <div className="relative">
+              <pre className="p-4 md:p-5 overflow-x-auto text-[11px] md:text-sm font-mono text-emerald-400/90 leading-relaxed custom-scrollbar bg-[#0d1117]">
+                <code>{content.trim()}</code>
+              </pre>
+            </div>
           </div>
         );
       }
-      return <span key={index} className="whitespace-pre-wrap">{part}</span>;
+      return <span key={index} className="whitespace-pre-wrap break-words">{part}</span>;
     });
   };
 
   return (
-    <div className="flex flex-col h-full bg-gray-950">
-      <header className="p-4 md:px-8 md:py-6 border-b border-gray-800 bg-gray-900/40 backdrop-blur-xl flex justify-between items-center gap-4 sticky top-0 z-20">
-        <div className="flex items-center gap-4">
-          <div className="hidden md:flex p-2.5 bg-indigo-600/10 rounded-xl border border-indigo-500/20">
-            <Code2 className="w-6 h-6 text-indigo-400" />
+    <div className="flex flex-col h-full bg-gray-950 relative">
+      <header className="p-4 md:px-8 border-b border-gray-800 bg-gray-900/60 backdrop-blur-xl flex justify-between items-center gap-4 sticky top-0 z-20">
+        <div className="flex items-center gap-3 md:gap-4 overflow-hidden">
+          <div className="p-2 bg-indigo-600/10 rounded-lg border border-indigo-500/20 shrink-0">
+            <Code2 className="w-5 h-5 text-indigo-400" />
           </div>
-          <div>
-            <h2 className="text-lg md:text-xl font-bold flex items-center gap-2 text-white">
-              <Sparkles className="w-5 h-5 text-yellow-400 animate-pulse" />
+          <div className="overflow-hidden">
+            <h2 className="text-base md:text-lg font-bold text-white flex items-center gap-2 truncate">
               AutoScript Pro
+              <Sparkles className="w-4 h-4 text-yellow-400 shrink-0" />
             </h2>
-            <p className="text-[11px] md:text-xs text-gray-500 font-medium tracking-wide">Enterprise Test Automation & Live URL Analysis</p>
+            <p className="text-[9px] md:text-xs text-gray-500 font-medium tracking-wide truncate">Live Contextual Analysis</p>
           </div>
         </div>
-        <LinkedInShare featureContext="AutoScript AI now genuinely visits the URL using Gemini Search Grounding! It writes site-specific Selenium scripts with 100% unique test cases every time. 🚀" />
+        <LinkedInShare featureContext="AutoScript AI uses Gemini Search Grounding to genuinely visit any URL and build site-specific automation scripts. Zero boilerplate, 100% unique logic! 🚀" />
       </header>
 
-      <div className="flex-1 overflow-y-auto p-4 md:p-8 space-y-8 custom-scrollbar">
+      <div className="flex-1 overflow-y-auto p-4 md:p-8 space-y-6 md:space-y-8 custom-scrollbar pb-safe">
         {messages.length === 0 && (
-          <div className="flex flex-col items-center justify-center h-full text-center space-y-6 max-w-lg mx-auto">
+          <div className="flex flex-col items-center justify-center h-full text-center space-y-6 max-w-lg mx-auto py-12">
             <div className="relative">
-              <div className="absolute inset-0 bg-indigo-500/20 blur-3xl rounded-full"></div>
-              <Bot className="w-20 h-20 text-gray-700 relative z-10" />
+              <div className="absolute inset-0 bg-indigo-500/10 blur-3xl rounded-full"></div>
+              <Bot className="w-16 h-16 md:w-20 md:h-20 text-gray-700 relative z-10" />
             </div>
-            <div className="space-y-2">
-              <h3 className="text-xl font-bold text-gray-300">Intelligent URL Retrieval</h3>
-              <p className="text-sm text-gray-500 leading-relaxed">
-                Provide a URL to start a deep DOM analysis.<br/>
-                <span className="text-indigo-400/80 font-mono text-xs mt-4 block italic">
-                  Example: "Retrieve automation script for https://www.google.com focusing on Image Search flow"
+            <div className="space-y-2 px-4">
+              <h3 className="text-lg md:text-xl font-bold text-gray-300">Start Deep Site Analysis</h3>
+              <p className="text-xs md:text-sm text-gray-500 leading-relaxed">
+                Provide a URL to retrieve unique automation scripts.<br/>
+                <span className="text-indigo-400/80 font-mono text-[10px] md:text-xs mt-4 block italic">
+                  "Build automation for https://www.amazon.com/ search and cart flow"
                 </span>
               </p>
             </div>
@@ -256,64 +232,54 @@ const ChatInterface: React.FC = () => {
         {messages.map((msg) => {
           const url = msg.role === 'user' ? extractUrl(msg.text) : null;
           const steps = msg.role === 'user' ? extractSteps(msg.text) : [];
-          
           return (
             <div
               key={msg.id}
-              className={`flex gap-4 md:gap-6 ${msg.role === 'user' ? 'flex-row-reverse' : 'flex-row'}`}
+              className={`flex gap-3 md:gap-6 ${msg.role === 'user' ? 'flex-row-reverse' : 'flex-row'}`}
             >
-              <div className={`w-10 h-10 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-lg ${
-                msg.role === 'user' 
-                  ? 'bg-indigo-600 border border-indigo-400/50' 
-                  : 'bg-emerald-600 border border-emerald-400/50'
+              <div className={`w-8 h-8 md:w-10 md:h-10 rounded-xl md:rounded-2xl flex items-center justify-center shrink-0 shadow-lg ${
+                msg.role === 'user' ? 'bg-indigo-600' : 'bg-emerald-600'
               }`}>
-                {msg.role === 'user' ? <User className="w-6 h-6 text-white" /> : <Bot className="w-6 h-6 text-white" />}
+                {msg.role === 'user' ? <User className="w-5 h-5 md:w-6 md:h-6 text-white" /> : <Bot className="w-5 h-5 md:w-6 md:h-6 text-white" />}
               </div>
               
-              <div className={`max-w-[85%] md:max-w-[75%] rounded-3xl p-5 md:p-6 ${
+              <div className={`max-w-[90%] sm:max-w-[85%] md:max-w-[75%] rounded-2xl md:rounded-3xl p-4 md:p-6 ${
                 msg.role === 'user' 
                   ? 'bg-indigo-600/10 text-indigo-50 border border-indigo-500/20' 
-                  : 'bg-gray-900 text-gray-100 border border-gray-800 shadow-2xl shadow-black/40'
+                  : 'bg-gray-900 text-gray-100 border border-gray-800 shadow-xl'
               }`}>
-                {url && (
-                  <FlowBrowserCard url={url} steps={steps} />
-                )}
-
-                <div className="leading-relaxed text-sm md:text-base">
+                {url && <FlowBrowserCard url={url} steps={steps} />}
+                <div className="text-[13px] md:text-base leading-relaxed overflow-x-hidden">
                   {renderMessageText(msg.text)}
                 </div>
-                
                 {msg.isStreaming && (
-                  <div className="flex items-center gap-3 mt-6 p-3 rounded-xl bg-gray-950/50 border border-gray-800">
-                    <Search className="w-4 h-4 text-indigo-400 animate-pulse" />
-                    <span className="text-indigo-300/80 text-xs font-medium animate-pulse">
-                      Gemini is performing deep-site analysis for your URL...
-                    </span>
+                  <div className="flex items-center gap-2 mt-4 text-[10px] md:text-xs text-indigo-300/80 animate-pulse bg-indigo-500/5 p-2 rounded-lg border border-indigo-500/10">
+                    <Search className="w-3.5 h-3.5" />
+                    <span>Gemini is researching the live URL structure...</span>
                   </div>
                 )}
               </div>
             </div>
           );
         })}
-        <div ref={messagesEndRef} />
+        <div ref={messagesEndRef} className="h-4" />
       </div>
 
-      <div className="p-4 md:p-8 bg-gray-950 border-t border-gray-900">
+      <div className="p-4 md:p-6 bg-gray-900/40 backdrop-blur-xl border-t border-gray-800 sticky bottom-0 md:relative">
         <form onSubmit={handleSubmit} className="relative max-w-5xl mx-auto group">
-          <div className="absolute -inset-1 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-2xl blur opacity-20 group-focus-within:opacity-40 transition-opacity duration-500"></div>
-          <div className="relative flex items-center bg-gray-900 rounded-2xl border border-gray-800 focus-within:border-indigo-500/50 transition-all duration-300 shadow-2xl">
-            <div className="pl-5 text-gray-600">
-              <Globe className="w-5 h-5" />
+          <div className="absolute -inset-1 bg-gradient-to-r from-indigo-500/20 to-purple-600/20 rounded-2xl blur group-focus-within:opacity-100 opacity-0 transition-opacity duration-500"></div>
+          <div className="relative flex items-center bg-gray-950 rounded-xl md:rounded-2xl border border-gray-800 focus-within:border-indigo-500/50 transition-all shadow-2xl">
+            <div className="hidden xs:flex pl-4 text-gray-600">
+              <Globe className="w-4 h-4 md:w-5 md:h-5" />
             </div>
             <textarea
-              ref={inputRef as any}
+              ref={inputRef}
               rows={1}
               value={input}
               onChange={(e) => {
                 setInput(e.target.value);
-                // Simple auto-resize
                 e.target.style.height = 'auto';
-                e.target.style.height = `${Math.min(e.target.scrollHeight, 200)}px`;
+                e.target.style.height = `${Math.min(e.target.scrollHeight, 150)}px`;
               }}
               onKeyDown={(e) => {
                 if (e.key === 'Enter' && !e.shiftKey) {
@@ -321,22 +287,22 @@ const ChatInterface: React.FC = () => {
                   handleSubmit(e as any);
                 }
               }}
-              placeholder="Paste URL (e.g. https://target-site.com)"
-              className="w-full bg-transparent text-white placeholder-gray-600 px-4 py-4 focus:outline-none resize-none min-h-[56px] custom-scrollbar"
+              placeholder="Enter URL to analyze..."
+              className="w-full bg-transparent text-white placeholder-gray-600 px-4 py-4 text-sm md:text-base focus:outline-none resize-none min-h-[56px] custom-scrollbar"
             />
-            <div className="pr-2 flex items-center gap-2">
+            <div className="pr-2 flex items-center shrink-0">
               <button
                 type="submit"
                 disabled={!input.trim() || isLoading}
-                className="p-2.5 bg-indigo-600 hover:bg-indigo-500 disabled:bg-gray-800 disabled:text-gray-600 text-white rounded-xl transition-all shadow-lg active:scale-95"
+                className="p-2 md:p-3 bg-indigo-600 hover:bg-indigo-500 disabled:bg-gray-800 disabled:text-gray-600 text-white rounded-lg md:rounded-xl transition-all shadow-lg active:scale-95"
               >
                 {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />}
               </button>
             </div>
           </div>
-          <p className="mt-3 text-center text-[10px] text-gray-600 font-medium tracking-wide">
-            POWERED BY <span className="text-indigo-400">GOOGLE GEMINI 3 FLASH + SEARCH GROUNDING</span> • CREATED BY <span className="text-indigo-400 uppercase">Sankalp Suman</span>
-          </p>
+          <div className="mt-2 text-center text-[8px] md:text-[10px] text-gray-600 font-medium tracking-tight md:tracking-wide">
+            GEMINI SEARCH GROUNDING ACTIVE • <span className="text-indigo-400">SANKALP SUMAN</span> PRO EDITION
+          </div>
         </form>
       </div>
     </div>
